@@ -14,49 +14,21 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "vendor.lineage.touch@1.0-service.gts3l"
+#define LOG_TAG "vendor.lineage.touch-service.gts3l"
 
 #include <android-base/logging.h>
-#include <hidl/HidlTransportSupport.h>
-
+#include <android/binder_manager.h>
+#include <android/binder_process.h>
 #include "KeyDisabler.h"
 
-using android::OK;
-using android::sp;
-using android::status_t;
-using android::hardware::configureRpcThreadpool;
-using android::hardware::joinRpcThreadpool;
-
-using ::vendor::lineage::touch::V1_0::IKeyDisabler;
-using ::vendor::lineage::touch::V1_0::implementation::KeyDisabler;
+using aidl::vendor::lineage::touch::KeyDisabler;
 
 int main() {
-    sp<KeyDisabler> keyDisabler;
-    status_t status;
-
-    LOG(INFO) << "Touch HAL service is starting.";
-
-    keyDisabler = new KeyDisabler();
-    if (keyDisabler == nullptr) {
-        LOG(ERROR) << "Can not create an instance of Touch HAL KeyDisabler Iface, exiting.";
-        goto shutdown;
-    }
-
-    configureRpcThreadpool(1, true /*callerWillJoin*/);
-
-    status = keyDisabler->registerAsService();
-    if (status != OK) {
-        LOG(ERROR) << "Could not register service for Touch HAL KeyDisabler Iface ("
-                   << status << ")";
-        goto shutdown;
-    }
-
-    LOG(INFO) << "Touch HAL service is ready.";
-    joinRpcThreadpool();
-    // Should not pass this line
-
-shutdown:
-    // In normal operation, we don't expect the thread pool to shutdown
-    LOG(ERROR) << "Touch HAL service is shutting down.";
+    ABinderProcess_setThreadPoolMaxThreadCount(0);
+    auto keyDisabler = ndk::SharedRefBase::make<KeyDisabler>();
+    const std::string instance = std::string(KeyDisabler::descriptor) + "/default";
+    const auto status = AServiceManager_addService(keyDisabler->asBinder().get(), instance.c_str());
+    CHECK_EQ(status, STATUS_OK) << "Failed to register " << instance;
+    ABinderProcess_joinThreadPool();
     return 1;
 }

@@ -1,0 +1,11 @@
+{
+  "Attributes": [
+    { "Name": "CgroupProcs", "Controller": "cpuacct", "File": "cgroup.procs" }
+  ],
+  "Profiles": [
+    { "Name": "LowIoPriority", "Actions": [] },
+    { "Name": "NormalIoPriority", "Actions": [] },
+    { "Name": "HighIoPriority", "Actions": [] },
+    { "Name": "MaxIoPriority", "Actions": [] }
+  ]
+}

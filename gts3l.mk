@@ -18,6 +18,31 @@
 $(call inherit-product, $(SRC_TARGET_DIR)/product/product_launched_with_n.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/non_ab_device.mk)
 
+# Android 16 no longer supports flattened APEX packages. Avoid compression
+# on this old loop/dm-verity implementation while keeping packaged APEXes.
+PRODUCT_COMPRESSED_APEX := false
+
+# The vendor manifest keeps FCM 4 even when the platform's unfrozen AIDL
+# selection installs a newer default set of framework matrices.
+PRODUCT_PACKAGES += framework_compatibility_matrix.4.xml
+
+# Kernel 3.18 has cgroup v1 controllers, including memory and cpuacct.
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/cgroups.json:$(TARGET_COPY_OUT_VENDOR)/etc/cgroups.json \
+    $(LOCAL_PATH)/configs/task_profiles.json:$(TARGET_COPY_OUT_VENDOR)/etc/task_profiles.json
+
+# Keep early APEX failures reachable through recovery USB during bring-up.
+# Sort after apexd.rc and stay on the System side of init's Treble boundary.
+ifneq ($(filter eng userdebug,$(TARGET_BUILD_VARIANT)),)
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/apexd-recovery.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/init/zz-gts3l-apexd-recovery.rc
+endif
+
+ifeq ($(TARGET_BUILD_VARIANT),userdebug)
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/bringup-usb.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/init/zz-gts3l-bringup-usb.rc
+endif
+
 # Get non-open-source specific aspects
 $(call inherit-product-if-exists, vendor/samsung/gts3l-common/gts3l-common-vendor.mk)
 
@@ -41,6 +66,12 @@ PRODUCT_CHARACTERISTICS := tablet
 
 # Exclude AudioFX
 TARGET_EXCLUDES_AUDIOFX := true
+
+# Retain required firmware mount directories in the read-only Vendor image.
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/firmware-mountpoint:$(TARGET_COPY_OUT_VENDOR)/dsp/.mountpoint \
+    $(LOCAL_PATH)/configs/firmware-mountpoint:$(TARGET_COPY_OUT_VENDOR)/firmware_mnt/.mountpoint \
+    $(LOCAL_PATH)/configs/firmware-mountpoint:$(TARGET_COPY_OUT_VENDOR)/firmware-modem/.mountpoint
 
 # Permissions
 PRODUCT_COPY_FILES += \
@@ -82,7 +113,7 @@ PRODUCT_COPY_FILES += \
 
 # ANT+
 PRODUCT_PACKAGES += \
-    AntHalService
+    AntHalService-Soong
 
 # Audio
 PRODUCT_PACKAGES += \
@@ -160,7 +191,7 @@ PRODUCT_PACKAGES += \
     android.hardware.memtrack@1.0-service \
     vendor.display.config@2.0 \
     gralloc.msm8996 \
-    hwcomposer.msm8996 \
+    hwcomposer.qcom \
     memtrack.msm8996 \
     libdisplayconfig \
     libqdMetaData \
@@ -184,9 +215,8 @@ PRODUCT_PACKAGES += \
     android.hardware.drm@1.0.vendor \
     android.hardware.drm@1.1.vendor
 
-# FastCharge
-PRODUCT_PACKAGES += \
-    vendor.lineage.fastcharge@1.0-service.samsung
+# The former Lineage fast-charge toggle HAL was removed upstream. Charging
+# continues to use the device's unchanged kernel and charger configuration.
 
 # Fingerprint
 PRODUCT_PACKAGES += \
@@ -261,7 +291,7 @@ PRODUCT_PACKAGES += \
 
 # LiveDisplay
 PRODUCT_PACKAGES += \
-    vendor.lineage.livedisplay@2.0-service.samsung-qcom
+    vendor.lineage.livedisplay-service.samsung-qcom
 
 # Media
 PRODUCT_COPY_FILES += \
@@ -289,6 +319,7 @@ PRODUCT_PACKAGES += \
     libOmxAacEnc \
     libOmxAmrEnc \
     libOmxCore \
+    libmm-omxcore \
     libOmxEvrcEnc \
     libOmxG711Enc \
     libOmxQcelp13Enc \
@@ -305,11 +336,6 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/powerhint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/powerhint.xml
-
-# Profiles for cgroups, task_profiles
-PRODUCT_COPY_FILES += \
-    system/core/libprocessgroup/profiles/cgroups_28.json:$(TARGET_COPY_OUT_VENDOR)/etc/cgroups.json \
-    system/core/libprocessgroup/profiles/task_profiles_28.json:$(TARGET_COPY_OUT_VENDOR)/etc/task_profiles.json
 
 # Qualcomm
 PRODUCT_PACKAGES += \
@@ -339,7 +365,7 @@ PRODUCT_PACKAGES += \
     init.qcom.sh \
     init.qcom.usb.rc \
     init.qcom.usb.sh \
-    init.usb.configfs.rc \
+    init.usb.configfs.gts3l.rc \
     init.samsung.rc \
     init.target.rc \
     ueventd.qcom.rc \
@@ -396,7 +422,7 @@ PRODUCT_COPY_FILES += \
 
 # Touch
 PRODUCT_PACKAGES += \
-    vendor.lineage.touch@1.0-service.gts3l
+    vendor.lineage.touch-service.gts3l
 
 # USB
 PRODUCT_PACKAGES += \
@@ -404,22 +430,34 @@ PRODUCT_PACKAGES += \
 
 # Vibrator
 PRODUCT_PACKAGES += \
-    android.hardware.vibrator@1.0-impl \
-    android.hardware.vibrator@1.0-service
+    android.hardware.vibrator-service.legacy \
+    vibrator.default
 
-# VNDK
-PRODUCT_COPY_FILES += \
-    prebuilts/vndk/v32/arm64/arch-arm-armv8-a/shared/vndk-sp/libhidlbase.so:$(TARGET_COPY_OUT_VENDOR)/lib/libhidlbase-v32.so \
-    prebuilts/vndk/v32/arm64/arch-arm64-armv8-a/shared/vndk-sp/libhidlbase.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libhidlbase-v32.so \
-    prebuilts/vndk/v32/arm64/arch-arm64-armv8-a/shared/vndk-sp/libhidlbase.so:$(TARGET_COPY_OUT_SYSTEM)/lib64/libhidlbase-v32.so \
-    prebuilts/vndk/v33/arm64/arch-arm64-armv8-a/shared/vndk-sp/libutils.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libutils-v33.so \
-    prebuilts/vndk/v29/arm64/arch-arm64-armv8-a/shared/vndk-sp/libcutils.so:$(TARGET_COPY_OUT_SYSTEM_EXT)/lib64/libcutils-v29.so \
-    prebuilts/vndk/v29/arm64/arch-arm-armv8-a/shared/vndk-core/libprotobuf-cpp-lite.so:$(TARGET_COPY_OUT_VENDOR)/lib/libprotobuf-cpp-lite-v29.so \
-    prebuilts/vndk/v29/arm64/arch-arm64-armv8-a/shared/vndk-core/libprotobuf-cpp-full.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libprotobuf-cpp-full-v29.so
+# Legacy ABI libraries are supplied as explicit Lineage compatibility modules.
+PRODUCT_PACKAGES += \
+    libhidlbase-v32 \
+    libutils-v33 \
+    libcutils-v29 \
+    libprotobuf-cpp-lite-v29 \
+    libprotobuf-cpp-full-v29
+
+# Blobs reference these through ELF dependencies/dlopen, outside Soong's
+# declared dependencies. Install vendor variants for the isolated vendor
+# namespace; a System/SystemExt copy alone is not visible there.
+PRODUCT_PACKAGES += \
+    libaudioroute.vendor \
+    libhidlbase-v32.vendor \
+    libcutils-v29.vendor \
+    libexpat.vendor \
+    libion.vendor \
+    libpower.vendor \
+    libprocessgroup.vendor \
+    libsqlite.vendor \
+    libutilscallstack.vendor
 
 # WiFi
 PRODUCT_PACKAGES += \
-    android.hardware.wifi@1.0-service.legacy \
+    android.hardware.wifi-service \
     libwpa_client \
     hostapd \
     wpa_supplicant \

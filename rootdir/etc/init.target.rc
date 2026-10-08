@@ -37,7 +37,16 @@ on early-init
 on fs
     wait /dev/block/platform/soc/${ro.boot.bootdevice}
     symlink /dev/block/platform/soc/${ro.boot.bootdevice} /dev/block/bootdevice
-    mount_all /vendor/etc/fstab.qcom
+    # Data is latemount: mount it only in late-fs, after early HAL startup.
+    mount_all /vendor/etc/fstab.qcom --early
+
+    # Cache is mounted above. Keep Android 16 flag storage across normal boots
+    # without repartitioning or waiting for the latemount Data filesystem.
+    # Wiping Cache also resets this metadata; aconfigd recreates build defaults.
+    mkdir /cache/gts3l-metadata 0755 root root
+    mount none /cache/gts3l-metadata /metadata bind
+    restorecon_recursive /metadata
+
     setprop ro.crypto.fde_algorithm AES-256-XTS
     swapon_all /vendor/etc/fstab.qcom
 
@@ -516,4 +525,3 @@ on property:vendor.sys.listeners.registered=*
 service vendor.wifiloader /vendor/bin/wifiloader
     class main
     oneshot
-

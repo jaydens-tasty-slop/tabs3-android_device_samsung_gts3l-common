@@ -24,9 +24,6 @@ COMMON_PATH := device/samsung/gts3l-common
 # Include path
 TARGET_SPECIFIC_HEADER_PATH := $(COMMON_PATH)/include
 
-# APEX
-OVERRIDE_TARGET_FLATTEN_APEX := true
-
 # Architecture
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
@@ -62,7 +59,7 @@ BOARD_KERNEL_IMAGE_NAME := Image.gz-dtb
 BOARD_KERNEL_PAGESIZE := 4096
 BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x02200000 --tags_offset 0x02000000
 BOARD_CUSTOM_BOOTIMG := true
-BOARD_CUSTOM_BOOTIMG_MK := hardware/samsung/mkbootimg.mk
+BOARD_CUSTOM_BOOTIMG_MK := $(COMMON_PATH)/bootimg.mk
 TARGET_KERNEL_ARCH := arm64
 TARGET_KERNEL_CLANG_COMPILE := false
 TARGET_KERNEL_LLVM_BINUTILS := false
@@ -70,21 +67,35 @@ TARGET_KERNEL_VERSION := 3.18
 TARGET_KERNEL_SOURCE := kernel/samsung/msm8996
 TARGET_COMPILE_WITH_MSM_KERNEL := true
 TARGET_KERNEL_ADDITIONAL_FLAGS := \
-    HOSTCFLAGS="-fuse-ld=lld -Wno-unused-command-line-argument" \
-    KBUILD_BUILD_USER=$(BUILD_USERNAME) KBUILD_BUILD_HOST=$(BUILD_HOSTNAME)
+    -j8 \
+    HOSTCC="/usr/bin/gcc -B/usr/bin/" HOSTCXX="/usr/bin/g++ -B/usr/bin/" \
+    HOSTAR=/usr/bin/ar HOSTLD=/usr/bin/ld \
+    HOSTCFLAGS="-O2 -std=gnu89" HOSTLDFLAGS="" \
+    KBUILD_BUILD_USER=rom-builder KBUILD_BUILD_HOST=podman
 
 # Platform
 TARGET_BOARD_PLATFORM := msm8996
+
+# Keep the original modem RFS firmware path with Qualcomm's current link modules.
+$(call soong_config_set,rfs,mpss_firmware_symlink_target,firmware_modem)
+
+# Keep APEX ext4 payloads within the kernel's declared feature masks.
+$(call soong_config_set_bool,gts3l_legacy,apex_no_shared_blocks,true)
 
 # ANT+
 BOARD_ANT_WIRELESS_DEVICE := "qualcomm-hidl"
 
 # Audio
+TARGET_USES_QCOM_MM_AUDIO := true
 AUDIO_FEATURE_ENABLED_AUDIOSPHERE := true
 AUDIO_FEATURE_ENABLED_DS2_DOLBY_DAP := true
 AUDIO_FEATURE_ENABLED_INSTANCE_ID := true
 AUDIO_FEATURE_ENABLED_PROXY_DEVICE := true
 USE_CUSTOM_AUDIO_POLICY := 1
+# The Samsung primary HAL requires the version-0.1, 48-byte offload prefix.
+$(call soong_config_set_bool,android_hardware_audio,legacy_offload_info_v1,true)
+# The Android 9 primary blob predates input-stream microphone steering fields.
+$(call soong_config_set_bool,android_hardware_audio,legacy_input_stream_v9,true)
 
 # Bluetooth
 BOARD_HAS_QCA_BT_ROME := true
@@ -130,14 +141,22 @@ TARGET_FS_CONFIG_GEN := $(COMMON_PATH)/config.fs
 PRODUCT_ENFORCE_VINTF_MANIFEST_OVERRIDE := true
 DEVICE_MANIFEST_FILE := $(COMMON_PATH)/manifest.xml
 DEVICE_MATRIX_FILE := $(COMMON_PATH)/compatibility_matrix.xml
+DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE := $(COMMON_PATH)/framework_compatibility_matrix.xml
 
 # Partitions
+# Android 16 defaults to A/B unless the legacy product explicitly opts out.
+AB_OTA_UPDATER := false
+# Reuse the filtered, audited System image for OTA packaging. Rebuilding it
+# from the target-files directory also collects generated recovery resources
+# and incidental outputs that were not declared product packages.
+COPY_IMAGES_FOR_TARGET_FILES_ZIP := true
 BOARD_BOOTIMAGE_PARTITION_SIZE := 79691776
 BOARD_CACHEIMAGE_PARTITION_SIZE := 209715200
 BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := f2fs
 BOARD_PERSISTIMAGE_PARTITION_SIZE := 33554432
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 79691776
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 4194304000
+BOARD_SYSTEMIMAGE_FILE_SYSTEM_TYPE := ext4
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 26226965504
 BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := f2fs
 BOARD_FLASH_BLOCK_SIZE := 131072 # (BOARD_KERNEL_PAGESIZE * 64)
@@ -148,7 +167,9 @@ BOARD_ROOT_EXTRA_SYMLINKS := \
     /mnt/vendor/persist:/persist
 
 # Root
-BOARD_ROOT_EXTRA_FOLDERS := efs
+# There is no metadata partition on this device. Init binds a Cache directory
+# here before Android's post-fs aconfig initialization.
+BOARD_ROOT_EXTRA_FOLDERS := efs metadata
 
 # Init
 TARGET_PLATFORM_DEVICE_BASE := "/devices/soc/"
@@ -168,7 +189,7 @@ BOARD_USES_QCOM_HARDWARE := true
 
 # Recovery
 TARGET_RECOVERY_FSTAB := $(COMMON_PATH)/rootdir/etc/fstab.qcom
-TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
+TARGET_RECOVERY_PIXEL_FORMAT := BGRA_8888
 TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 
@@ -187,10 +208,6 @@ TARGET_LD_SHIM_LIBS := \
     /vendor/lib/hw/audio.primary.msm8996.so|libaudioprimary_shim.so \
     /vendor/lib/hw/camera.msm8996.so|libcamera_metadata_helper.so
 
-# Treble
-PRODUCT_FULL_TREBLE_OVERRIDE := true
-BOARD_VNDK_VERSION := current
-
 # Verity
 # Only needed for signing
 BOARD_AVB_ENABLE := false
@@ -208,4 +225,6 @@ WIFI_DRIVER_FW_PATH_AP := "ap"
 WIFI_DRIVER_FW_PATH_STA := "sta"
 WIFI_DRIVER_FW_PATH_P2P := "p2p"
 WIFI_HIDL_UNIFIED_SUPPLICANT_SERVICE_RC_ENTRY := true
+# Keep legacy STA/AP modes: this driver requires explicit firmware switching.
+# The AIDL HAL preserves those IDs when querying driver concurrency support.
 WPA_SUPPLICANT_VERSION := VER_0_8_X

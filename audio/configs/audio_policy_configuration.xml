@@ -21,6 +21,18 @@
                              samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
                 </mixPort>
 
+                <!-- msm8996 DSP compressed playback; keep PCM as the general route. -->
+                <mixPort name="compressed-offload" role="source"
+                         flags="AUDIO_OUTPUT_FLAG_DIRECT|AUDIO_OUTPUT_FLAG_COMPRESS_OFFLOAD|AUDIO_OUTPUT_FLAG_NON_BLOCKING"
+                         maxOpenCount="1" maxActiveCount="1">
+                    <profile name="" format="AUDIO_FORMAT_MP3"
+                             samplingRates="44100,48000"
+                             channelMasks="AUDIO_CHANNEL_OUT_MONO,AUDIO_CHANNEL_OUT_STEREO"/>
+                    <profile name="" format="AUDIO_FORMAT_AAC_LC"
+                             samplingRates="44100,48000"
+                             channelMasks="AUDIO_CHANNEL_OUT_MONO,AUDIO_CHANNEL_OUT_STEREO"/>
+                </mixPort>
+
                 <!-- Capture(Input) Streams -->
                 <mixPort name="primary-in" role="sink">
                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
@@ -87,11 +99,11 @@
                 <route sink="Earpiece" type="mix"
                        sources="primary-out"/>
                 <route sink="Speaker" type="mix"
-                       sources="primary-out"/>
+                       sources="primary-out,compressed-offload"/>
                 <route sink="Wired Headset" type="mix"
-                       sources="primary-out"/>
+                       sources="primary-out,compressed-offload"/>
                 <route sink="Wired Headphone" type="mix"
-                       sources="primary-out"/>
+                       sources="primary-out,compressed-offload"/>
                 <route sink="Bt Sco" type="mix"
                        sources="primary-out"/>
                 <route sink="Bt Sco Headset" type="mix"

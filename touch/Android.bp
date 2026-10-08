@@ -13,10 +13,9 @@
 // limitations under the License.
 
 cc_binary {
-    name: "vendor.lineage.touch@1.0-service.gts3l",
+    name: "vendor.lineage.touch-service.gts3l",
     init_rc: ["vendor.lineage.touch@1.0-service.gts3l.rc"],
     vintf_fragments: ["vendor.lineage.touch@1.0-service.gts3l.xml"],
-    defaults: ["hidl_defaults"],
     relative_install_path: "hw",
     vendor: true,
     srcs: [
@@ -25,8 +24,8 @@ cc_binary {
     ],
     shared_libs: [
         "libbase",
-        "libhidlbase",
+        "libbinder_ndk",
         "libutils",
-        "vendor.lineage.touch@1.0",
+        "vendor.lineage.touch-V1-ndk",
     ],
 }

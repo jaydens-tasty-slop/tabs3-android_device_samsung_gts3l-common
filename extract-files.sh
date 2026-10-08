@@ -81,6 +81,12 @@ function blob_fixup() {
         ;;
     vendor/lib/hw/audio.primary.msm8996.so)
         "${PATCHELF}" --replace-needed "libcutils.so" "libprocessgroup.so" "${2}"
+        case "$("${PATCHELF}" --print-needed "${2}")" in
+            *libaudioprimary_shim.so*) ;;
+            *) "${PATCHELF}" --add-needed "libaudioprimary_shim.so" "${2}" ;;
+        esac
+        # patchelf can relocate PT_PHDR incorrectly for this ELF's nonzero base.
+        python3 "${MY_DIR}/fixup_elf_phdr.py" "${2}"
         ;;
     vendor/lib/hw/android.hardware.gnss@1.0-impl-qti.so)
         "${PATCHELF}" --replace-needed "libcutils.so" "libprocessgroup.so" "${2}"

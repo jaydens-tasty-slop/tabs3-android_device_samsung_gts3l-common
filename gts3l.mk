@@ -38,11 +38,6 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/apexd-recovery.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/init/zz-gts3l-apexd-recovery.rc
 endif
 
-ifeq ($(TARGET_BUILD_VARIANT),userdebug)
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/configs/bringup-usb.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/init/zz-gts3l-bringup-usb.rc
-endif
-
 # Get non-open-source specific aspects
 $(call inherit-product-if-exists, vendor/samsung/gts3l-common/gts3l-common-vendor.mk)
 

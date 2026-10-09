@@ -1,7 +1,0 @@
-# Enable authenticated USB ADB during this tablet's userdebug bring-up.
-# AdbService later reads this same preference. Property actions may run after
-# the queued boot event, so also select the live USB configuration explicitly.
-# Authentication and the existing authorized public keys remain required.
-on property:ro.persistent_properties.ready=true && property:ro.build.type=userdebug
-    setprop persist.sys.usb.config adb
-    setprop sys.usb.config adb

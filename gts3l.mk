@@ -276,6 +276,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/keylayout/Vendor_04e8_Product_a000.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/Vendor_04e8_Product_a000.kl \
     $(LOCAL_PATH)/keylayout/Vendor_04e8_Product_a005.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/Vendor_04e8_Product_a005.kl \
     $(LOCAL_PATH)/keylayout/Vendor_04e8_Product_a006.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/Vendor_04e8_Product_a006.kl \
+    $(LOCAL_PATH)/keylayout/Vendor_04e8_Product_a035.kl:$(TARGET_COPY_OUT_SYSTEM)/usr/keylayout/Vendor_04e8_Product_a035.kl \
     $(LOCAL_PATH)/keylayout/Vendor_04e8_Product_a009.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/Vendor_04e8_Product_a009.kl \
     $(LOCAL_PATH)/idc/Vendor_04e8_Product_a035.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/Vendor_04e8_Product_a035.idc \
     $(LOCAL_PATH)/idc/sec_e-pen.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/sec_e-pen.idc

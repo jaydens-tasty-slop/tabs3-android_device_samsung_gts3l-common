@@ -5,6 +5,23 @@
 #
 
 on init
+    # Mounting cgroup v1 hides the ownership set on the tmpfs mount point.
+    # system_server creates isolated WebView/app-zygote process groups here.
+    chown system system /dev/cpuacct
+    chmod 0755 /dev/cpuacct
+    chown system system /dev/cpuacct/cgroup.procs
+    chown system system /dev/cpuacct/tasks
+    chmod 0664 /dev/cpuacct/cgroup.procs
+    chmod 0664 /dev/cpuacct/tasks
+
+    # Legacy traffic accounting: system_server has net_bw_stats/net_bw_acct.
+    # App socket tagging is mediated by netd, rather than writable proc files.
+    chown root net_bw_acct /proc/net/xt_qtaguid/ctrl
+    chmod 0660 /proc/net/xt_qtaguid/ctrl
+    chown root net_bw_stats /proc/net/xt_qtaguid/stats
+    chmod 0640 /proc/net/xt_qtaguid/stats
+    chown root net_bw_stats /proc/net/xt_qtaguid/iface_stat_all
+    chmod 0640 /proc/net/xt_qtaguid/iface_stat_all
     symlink /dev/block/bootdevice/by-name/persistent  /dev/block/persistent
     symlink /dev/block/bootdevice/by-name/steady  /dev/block/steady
 

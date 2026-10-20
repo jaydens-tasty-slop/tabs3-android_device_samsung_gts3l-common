@@ -97,6 +97,11 @@ on boot
     write /sys/class/android_usb/android0/f_ffs/aliases adb
     enable qcom-usb-sh
 
+# If the user enabled ADB, restart it once APEX activation finishes so new
+# shell processes inherit the complete runtime linker namespace.
+on property:apexd.status=ready && property:sys.usb.config=adb
+    restart adbd
+
 service qcom-usb-sh /vendor/bin/init.qcom.usb.sh
     class core
     user root

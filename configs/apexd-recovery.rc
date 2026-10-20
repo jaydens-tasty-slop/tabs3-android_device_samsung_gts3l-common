@@ -1,0 +1,23 @@
+# Debug builds only. Preserve normal APEX startup and capabilities, but return
+# to TWRP on failure so logs can be collected over USB.+# Samsung's kernel selects recovery for any reboot target starting "recovery".
+# The suffix avoids Android init's BCB write: this tablet has no misc partition.
+
+service apexd /system/bin/apexd
+    override
+    interface aidl apexservice
+    class core
+    user root
+    group system
+    oneshot
+    disabled
+    reboot_on_failure reboot,recovery-no-bcb,apexd-failed
+    capabilities CHOWN DAC_OVERRIDE DAC_READ_SEARCH FOWNER SYS_ADMIN
+
+service apexd-bootstrap /system/bin/apexd --bootstrap
+    override
+    user root
+    group system
+    oneshot
+    disabled
+    reboot_on_failure reboot,recovery-no-bcb,bootstrap-apexd-failed
+    capabilities SYS_ADMIN

@@ -1,0 +1,4 @@
+# Android 17 no longer imports the legacy firmware/android/fstab device-tree
+# node during first-stage init. Keep its System entry in the boot ramdisk so
+# this non-system-as-root device can mount System and switch root.
+/dev/block/platform/soc/7464900.sdhci/by-name/system /system ext4 ro,errors=panic,noload wait,first_stage_mount

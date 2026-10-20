@@ -69,6 +69,12 @@ function blob_fixup() {
     vendor/lib/hw/camera.msm8996.so)
         "${PATCHELF}" --replace-needed "libcamera_client.so" "libcamera_metadata_helper.so" "${2}"
         ;;
+    vendor/lib/libbauthserver.so|vendor/lib64/libbauthserver.so)
+        case "$("${PATCHELF}" --print-needed "${2}")" in
+            *libbauthtzcommon_shim.so*) ;;
+            *) "${PATCHELF}" --add-needed "libbauthtzcommon_shim.so" "${2}" ;;
+        esac
+        ;;
     vendor/lib/libwvhidl.so)
         "${PATCHELF}" --replace-needed "libprotobuf-cpp-lite.so" "libprotobuf-cpp-lite-v29.so" "${2}"
         ;;
@@ -78,9 +84,18 @@ function blob_fixup() {
     vendor/lib/libmmcamera2_stats_modules.so)
         "${PATCHELF}" --replace-needed "libandroid.so" "libsensorndkbridge.so" "${2}"
         "${PATCHELF}" --replace-needed "libgui.so" "libgui_vendor.so" "${2}"
+        python3 "${MY_DIR}/patch_camera_stats_af_uaf.py" "${2}"
+        python3 "${MY_DIR}/patch_camera_stats_aec_uaf.py" "${2}"
+        python3 "${MY_DIR}/patch_camera_stats_af_setparm_uaf.py" "${2}"
         ;;
     vendor/lib/hw/audio.primary.msm8996.so)
         "${PATCHELF}" --replace-needed "libcutils.so" "libprocessgroup.so" "${2}"
+        case "$("${PATCHELF}" --print-needed "${2}")" in
+            *libaudioprimary_shim.so*) ;;
+            *) "${PATCHELF}" --add-needed "libaudioprimary_shim.so" "${2}" ;;
+        esac
+        # patchelf can relocate PT_PHDR incorrectly for this ELF's nonzero base.
+        python3 "${MY_DIR}/fixup_elf_phdr.py" "${2}"
         ;;
     vendor/lib/hw/android.hardware.gnss@1.0-impl-qti.so)
         "${PATCHELF}" --replace-needed "libcutils.so" "libprocessgroup.so" "${2}"

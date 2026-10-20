@@ -38,7 +38,8 @@
          * The remote submix module "audio.r_submix.default" must be installed on the device.
          * The device must be provisioned with HDCP keys (for protected content).
     -->
-    <bool name="config_enableWifiDisplay">true</bool>
+    <!-- Legacy WFD vendor components have unresolved baseline dependencies. -->
+    <bool name="config_enableWifiDisplay">false</bool>
 
     <!-- Set to true if the wifi display supports compositing content stored
          in gralloc protected buffers.  For this to be true, there must exist
@@ -64,6 +65,11 @@
     <!-- Boolean indicating whether the HWC setColorTransform function can be performed efficiently
          in hardware. -->
     <bool name="config_setColorTransformAccelerated">true</bool>
+
+    <!-- Android 17 defaults to 1024 cached processes for devices with the
+         modern cached-app freezer. Kernel 3.18 cannot provide that freezer,
+         so bound idle process retention while preserving useful multitasking. -->
+    <integer name="config_customizedMaxCachedProcesses">64</integer>
 
     <!-- Array of light sensor lux values to define our levels for auto backlight brightness support.
          The N entries of this array define N + 1 control points as follows:

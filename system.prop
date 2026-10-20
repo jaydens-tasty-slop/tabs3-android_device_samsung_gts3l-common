@@ -56,7 +56,9 @@ bluetooth.profile.sap.server.enabled?=true
 
 # BPF
 ro.kernel.ebpf.supported=false
-bpf.progs_loaded=1
+
+# Packed APEX on the legacy loop driver
+ro.apexd.legacy_loop_io=true
 
 # Camera
 camera.disable_zsl_mode=1
@@ -138,7 +140,7 @@ vendor.usb.controller=6a00000.dwc3
 wifi.interface=wlan0
 
 # WFD
-persist.debug.wfd.enable=1
+persist.debug.wfd.enable=0
 persist.sys.wfd.virtual=0
 
 # Zygote

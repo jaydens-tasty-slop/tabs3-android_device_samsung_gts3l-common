@@ -31,6 +31,7 @@ cc_binary {
     init_rc: ["android.hardware.audio.service.gts3l.rc"],
     relative_install_path: "hw",
     vendor: true,
+    required: ["libstdc++_vendor"],
 
     defaults: [
         "android_hardware_audio_config_defaults",

@@ -1,3 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
 <manifest version="1.0" type="device" target-level="4">
     <hal format="hidl">
         <name>android.hardware.audio</name>
@@ -133,15 +134,6 @@
             <instance>default</instance>
         </interface>
     </hal>
-    <!--hal format="hidl">
-        <name>android.hardware.media.c2</name>
-        <transport>hwbinder</transport>
-        <version>1.0</version>
-        <interface>
-            <name>IComponentStore</name>
-            <instance>default</instance>
-        </interface>
-    </hal-->
     <hal format="hidl">
         <name>android.hardware.media.omx</name>
         <transport>hwbinder</transport>
@@ -179,15 +171,6 @@
         <version>1.0</version>
         <interface>
             <name>IThermal</name>
-            <instance>default</instance>
-        </interface>
-    </hal>
-    <hal format="hidl">
-        <name>android.hardware.vibrator</name>
-        <transport>hwbinder</transport>
-        <version>1.0</version>
-        <interface>
-            <name>IVibrator</name>
             <instance>default</instance>
         </interface>
     </hal>
@@ -244,20 +227,19 @@
             <instance>default</instance>
         </interface>
     </hal>
-    <hal format="hidl">
+    <hal format="aidl">
         <name>vendor.lineage.livedisplay</name>
-        <transport>hwbinder</transport>
-        <version>2.0</version>
+        <version>1</version>
         <interface>
             <name>IAdaptiveBacklight</name>
             <instance>default</instance>
         </interface>
         <interface>
-            <name>IDisplayModes</name>
+            <name>IDisplayColorCalibration</name>
             <instance>default</instance>
         </interface>
         <interface>
-            <name>IReadingEnhancement</name>
+            <name>IDisplayModes</name>
             <instance>default</instance>
         </interface>
         <interface>

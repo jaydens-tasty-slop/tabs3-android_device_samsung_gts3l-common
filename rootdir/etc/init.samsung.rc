@@ -78,7 +78,9 @@ on init
 
     mkdir /mnt/asec 0755 root system
     mkdir /mnt/obb 0755 root system
-    mkdir /mnt/media_rw 0750 root media_rw
+    # Android 11+ gives the external_storage group access to non-visible volumes (USB drives),
+    # so this must match system/core/rootdir/init.rc or file managers see them as empty.
+    mkdir /mnt/media_rw 0750 root external_storage
     mkdir /mnt/user 0755 root root
     mkdir /mnt/user/0 0755 root root
     mkdir /mnt/expand 0771 system system

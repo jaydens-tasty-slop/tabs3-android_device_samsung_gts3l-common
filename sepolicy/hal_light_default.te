@@ -4,3 +4,7 @@ allow hal_light_default sysfs_lcd_writable:file { getattr open read write };
 allow hal_light_default sysfs:file { getattr open write };
 
 allow hal_light_default sysfs_touchkey:lnk_file read;
+
+# Backlight is driven through the MDSS LED class device (/sys/class/leds/lcd-backlight)
+allow hal_light_default sysfs_graphics:dir search;
+allow hal_light_default sysfs_graphics:file rw_file_perms;

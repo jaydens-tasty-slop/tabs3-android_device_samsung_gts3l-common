@@ -96,6 +96,7 @@ function blob_fixup() {
         esac
         # patchelf can relocate PT_PHDR incorrectly for this ELF's nonzero base.
         python3 "${MY_DIR}/fixup_elf_phdr.py" "${2}"
+        python3 "${MY_DIR}/patch_audio_primary_close_uaf.py" "${2}"
         ;;
     vendor/lib/hw/android.hardware.gnss@1.0-impl-qti.so)
         "${PATCHELF}" --replace-needed "libcutils.so" "libprocessgroup.so" "${2}"

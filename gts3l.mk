@@ -349,6 +349,12 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     ro.surface_flinger.primary_display_orientation=ORIENTATION_270 \
     ro.vendor.qti.va_aosp.support=1
 
+# Keep failed-suspend retries inside the kernel's 10 s firmware-cache window.
+# Beyond it, each attempt re-caches firmware and can fail again, so the
+# default 60 s backoff ceiling never recovers once reached.
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+    suspend.max_sleep_time_millis=5000
+
 # QMI
 PRODUCT_PACKAGES += \
     libjson

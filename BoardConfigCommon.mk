@@ -103,6 +103,8 @@ USE_CUSTOM_AUDIO_POLICY := 1
 $(call soong_config_set_bool,android_hardware_audio,legacy_offload_info_v1,true)
 # The Android 9 primary blob predates input-stream microphone steering fields.
 $(call soong_config_set_bool,android_hardware_audio,legacy_input_stream_v9,true)
+# It also predates set_event_callback and later output-stream callbacks.
+$(call soong_config_set_bool,android_hardware_audio,legacy_output_stream_v9,true)
 
 # Bluetooth
 BOARD_HAS_QCA_BT_ROME := true
